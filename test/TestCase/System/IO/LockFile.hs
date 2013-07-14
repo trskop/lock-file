@@ -12,6 +12,7 @@ module TestCase.System.IO.LockFile (tests)
 
 import Control.Concurrent (threadDelay)
 
+import qualified Control.Monad.TaggedException.Hidden as E (hide)
 import Data.Default.Class (Default(def))
 import System.Directory (doesFileExist)
 import Test.Framework (Test, testGroup)
@@ -24,22 +25,25 @@ import System.IO.LockFile
 
 tests :: [Test]
 tests =
-    [ test_withLockExt
+    [ testGroup "withLockExt"
+        test_withLockExt
     , testGroup "withLockFile"
         [ test_lockFileIsPresent
         , test_lockFileIsDeletedAfterwards
         ]
     ]
 
-test_withLockExt :: Test
-test_withLockExt = testProperty "withLockExt" $ \ s ->
-    withLockExt s == s ++ ".lock"
+test_withLockExt :: [Test]
+test_withLockExt =
+    [ testProperty "File names are generated correctly" $ \ s ->
+        withLockExt s == s ++ ".lock"
+    ]
 {-# ANN test_withLockExt "HLint: ignore Use camelCase" #-}
 
 test_lockFileIsPresent :: Test
 test_lockFileIsPresent =
     testCase "Lock file is present while running computation"
-        $ withLockFile def lockFileName (doesFileExist lockFileName)
+        $ E.hide (withLockFile def lockFileName (doesFileExist lockFileName))
             >>= assertBool failureMsg
   where
     lockFileName = withLockExt "./test/test-lock-file"
@@ -50,7 +54,7 @@ test_lockFileIsPresent =
 test_lockFileIsDeletedAfterwards :: Test
 test_lockFileIsDeletedAfterwards =
     testCase "Lock file is deleted afterwards" $ do
-        withLockFile def lockFileName $ threadDelay 1000
+        E.hide . withLockFile def lockFileName $ threadDelay 1000
         doesFileExist lockFileName >>= assertBool failureMsg . not
   where
     lockFileName = withLockExt "./test/test-lock-file"
