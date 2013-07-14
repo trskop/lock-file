@@ -30,14 +30,29 @@ module System.IO.LockFile
     )
     where
 
+import Control.Applicative ((<$>))
 import Control.Concurrent (threadDelay)
 import Control.Exception (IOException)
+import Control.Monad (when)
+import Data.Bits ((.|.))
 import Data.Data (Data)
 import Data.Typeable (Typeable)
 import Data.Word (Word8, Word64)
-import System.IO
-    (Handle, IOMode(WriteMode), hClose, hFlush, hPutStrLn, openFile)
-import System.Posix.Internals (c_getpid)
+import Foreign.C (eEXIST, errnoToIOError, getErrno)
+import GHC.IO.Handle.FD (fdToHandle)
+import System.IO (Handle, hClose, hFlush, hPutStrLn)
+import System.Posix.Internals
+    ( c_close
+    , c_getpid
+    , c_open
+    , o_BINARY
+    , o_CREAT
+    , o_EXCL
+    , o_NOCTTY
+    , o_NONBLOCK
+    , o_RDWR
+    , withFilePath
+    )
 
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Control.Monad.TaggedException
@@ -58,7 +73,7 @@ import Control.Monad.TaggedException.Utilities
     (MonadExceptionUtilities(mask'))
 #endif
 import Data.Default.Class (Default(def))
-import System.Directory (doesFileExist, removeFile)
+import System.Directory (removeFile)
 
 
 -- | Append default lock file extension. Useful e.g. for generating lock file
@@ -146,24 +161,34 @@ lock params = lock' $ case retryToAcquireLock params of
     NumberOfTimes 0 -> params{retryToAcquireLock = No}
     _ -> params
   where
+    openLockFile lockFileName = io $ do
+        fd <- withFilePath lockFileName $ \ fp -> c_open fp openFlags 0o644
+        if fd > 0
+            then Just <$> fdToHandle fd `onException'` c_close fd
+            else do
+                errno <- getErrno
+                when (errno /= eEXIST) . ioError
+                    . errnoToIOError "lock" errno Nothing $ Just lockFileName
+                -- Failed to open lock file because it already exists
+                return Nothing
+      where
+        openFlags = o_NONBLOCK .|. o_NOCTTY .|. o_RDWR .|. o_CREAT .|. o_EXCL
+            .|. o_BINARY
+
     lock' params' lockFileName
       | retryToAcquireLock params' == NumberOfTimes 0 = failedToAcquireLockFile
       | otherwise = do
-        lockAlreadyExist <- io $ doesFileExist lockFileName
-        if lockAlreadyExist
-            then case retryToAcquireLock params' of
-                No -> failedToAcquireLockFile
-                _ -> do
-                    io $ threadDelay sleepBetweenRetires'
-                    lock' paramsDecRetries lockFileName
-            else io $ do
-                -- TODO
-                -- openFile is not safe like this, we need to fail in case that
-                -- file already exist.
-                lockFileHandle <- openFile lockFileName WriteMode
-                c_getpid >>= hPutStrLn lockFileHandle . ("PID=" ++) . show
-                hFlush lockFileHandle
-                return lockFileHandle
+            lockFileHandle <- openLockFile lockFileName
+            case lockFileHandle of
+                Nothing -> case retryToAcquireLock params' of
+                    No -> failedToAcquireLockFile
+                    _ -> do
+                        io $ threadDelay sleepBetweenRetires'
+                        lock' paramsDecRetries lockFileName
+                Just h -> io $ do
+                    c_getpid >>= hPutStrLn h . ("PID=" ++) . show
+                    hFlush h
+                    return h
       where
         sleepBetweenRetires' = fromIntegral $ sleepBetweenRetires params'
         failedToAcquireLockFile = throw $ UnableToAcquireLockFile lockFileName
