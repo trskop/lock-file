@@ -12,8 +12,9 @@ module TestCase.System.IO.LockFile (tests)
 
 import Control.Concurrent (threadDelay)
 
-import qualified Control.Monad.TaggedException.Hidden as E (hide)
+import qualified Control.Monad.TaggedException as E (catch, hide)
 import Data.Default.Class (Default(def))
+import System.FilePath ((</>))
 import System.Directory (doesFileExist)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
@@ -30,6 +31,7 @@ tests =
     , testGroup "withLockFile"
         [ test_lockFileIsPresent
         , test_lockFileIsDeletedAfterwards
+        , test_lockingFailedDueToNonExistingDirectory
         ]
     ]
 
@@ -40,13 +42,15 @@ test_withLockExt =
     ]
 {-# ANN test_withLockExt "HLint: ignore Use camelCase" #-}
 
+lockFileName :: FilePath
+lockFileName = withLockExt $ "test" </> "test-lock-file"
+
 test_lockFileIsPresent :: Test
 test_lockFileIsPresent =
     testCase "Lock file is present while running computation"
         $ E.hide (withLockFile def lockFileName (doesFileExist lockFileName))
             >>= assertBool failureMsg
   where
-    lockFileName = withLockExt "./test/test-lock-file"
     failureMsg = "Function withLockFile failed acquire lock file "
         ++ show lockFileName
 {-# ANN test_lockFileIsPresent "HLint: ignore Use camelCase" #-}
@@ -57,7 +61,21 @@ test_lockFileIsDeletedAfterwards =
         E.hide . withLockFile def lockFileName $ threadDelay 1000
         doesFileExist lockFileName >>= assertBool failureMsg . not
   where
-    lockFileName = withLockExt "./test/test-lock-file"
     failureMsg = "Function withLockFile failed to delete lock file "
         ++ show lockFileName
 {-# ANN test_lockFileIsDeletedAfterwards "HLint: ignore Use camelCase" #-}
+
+test_lockingFailedDueToNonExistingDirectory :: Test
+test_lockingFailedDueToNonExistingDirectory =
+    testCase "Lock file is deleted afterwards"
+        $ (withLockFile def lockFileName' (threadDelay 1000 >> return False)
+            `E.catch` handler) >>= assertBool failureMsg
+  where
+    lockFileName' = "this-directory-does-not-exist" </> lockFileName
+    failureMsg = "Function withLockFile should fail when creating "
+        ++ show lockFileName'
+    handler e = return $ case e of
+        CaughtIOException _ -> True
+        _ -> False
+{-# ANN test_lockingFailedDueToNonExistingDirectory
+    "HLint: ignore Use camelCase" #-}
