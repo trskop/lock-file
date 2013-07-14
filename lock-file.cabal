@@ -1,5 +1,5 @@
 name:                   lock-file
-version:                0.1.0.0
+version:                0.2.0.0
 synopsis:               Provide exclusive access to a resource using lock file.
 description:
   Provide exclusive access to a resource using lock file, which are files whose
