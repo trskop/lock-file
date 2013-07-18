@@ -44,7 +44,7 @@ $ ghc example.hs
 Linking example ...
 $ ./example & ./example 
 [1] 7893
-Locking failed: Unable to acquire lock file: "/var/run/lock/my-example-lock"
+Locking failed with: Unable to acquire lock file: "/var/run/lock/my-example-lock"
 $ [1]+  Done                    ./example
 ```
 
