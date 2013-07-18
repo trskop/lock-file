@@ -42,7 +42,7 @@ library
   if flag(pedantic)
     ghc-options:        -Werror
 
-test-suite not-found-unit-tests
+test-suite lock-file-unit-tests
   hs-source-dirs:       src, test
   type:                 exitcode-stdio-1.0
   main-is:              unit-tests-main.hs
