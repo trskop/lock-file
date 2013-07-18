@@ -4,6 +4,9 @@ synopsis:               Provide exclusive access to a resource using lock file.
 description:
   Provide exclusive access to a resource using lock file, which are files whose
   purpose is to signal by their presence that some resource is locked.
+
+homepage:               https://github.com/trskop/lock-file
+bug-reports:            https://github.com/trskop/lock-file/issues
 license:                BSD3
 license-file:           LICENSE
 author:                 Peter Trsko
@@ -80,3 +83,7 @@ test-suite not-found-unit-tests
     ghc-options:        -fwarn-tabs
   if flag(pedantic)
     ghc-options:        -Werror
+
+source-repository head
+  type:                 git
+  location:             git://github.com/trskop/lock-file.git
