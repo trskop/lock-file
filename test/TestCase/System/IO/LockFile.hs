@@ -72,8 +72,8 @@ test_lockingFailedDueToNonExistingDirectory =
             `E.catch` handler) >>= assertBool failureMsg
   where
     lockFileName' = "this-directory-does-not-exist" </> lockFileName
-    failureMsg = "Function withLockFile should fail when creating "
-        ++ show lockFileName'
+    failureMsg = "Function withLockFile should fail when creating lock in non"
+        ++ " existing directory: " ++ show lockFileName'
     handler e = return $ case e of
         CaughtIOException _ -> True
         _ -> False

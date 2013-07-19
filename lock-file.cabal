@@ -26,7 +26,9 @@ flag pedantic
 
 library
   hs-source-dirs:       src
-  exposed-modules:      System.IO.LockFile
+  exposed-modules:
+      System.IO.LockFile
+    , System.IO.LockFile.Internal
   -- other-modules:
   build-depends:
       base >= 4.5 && < 5
@@ -48,6 +50,7 @@ test-suite lock-file-unit-tests
   main-is:              unit-tests-main.hs
   other-modules:
       System.IO.LockFile
+    , System.IO.LockFile.Internal
     , TestCase
     , TestCase.System.IO.LockFile
 
