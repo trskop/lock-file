@@ -9,6 +9,15 @@ Provide exclusive access to a resource using lock file, which are files whose
 purpose is to signal by their presence that some resource is locked.
 
 
+Dependencies
+------------
+
+Some dependencies aren't currently available on Hackage and have to be
+installed manually:
+
+* [`tagged-exception-core`](https://github.com/trskop/tagged-exception)
+
+
 Usage Example
 -------------
 
