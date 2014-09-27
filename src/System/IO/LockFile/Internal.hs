@@ -98,7 +98,7 @@ data LockingParameters = LockingParameters
 
 -- | @def = 'LockingParameters' def 8000000@
 --
--- Sleep interfal is inspired by @lockfile@ command line utility that is part
+-- Sleep interval is inspired by @lockfile@ command line utility that is part
 -- of Procmail.
 instance Default LockingParameters where
     def = LockingParameters
