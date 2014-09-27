@@ -46,7 +46,7 @@ import Data.Typeable (Typeable)
 import Data.Word (Word8, Word64)
 import Foreign.C (eEXIST, errnoToIOError, getErrno)
 import GHC.IO.Handle.FD (fdToHandle)
-import System.IO (FilePath, Handle, IO, hClose, hFlush, hPutStrLn)
+import System.IO (FilePath, Handle, IO, hClose, hFlush, hPutStr)
 import System.Posix.Internals
     ( c_close
     , c_getpid
@@ -173,7 +173,7 @@ lock params = lock' $ case retryToAcquireLock params of
                         io $ threadDelay sleepBetweenRetires'
                         lock' paramsDecRetries lockFileName
                 Just h -> io $ do
-                    c_getpid >>= hPutStrLn h . ("PID=" ++) . show
+                    c_getpid >>= hPutStr h . show
                     hFlush h
                     return h
       where
