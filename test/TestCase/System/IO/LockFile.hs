@@ -1,7 +1,7 @@
 -- |
 -- Module:       $HEADER$
 -- Description:  Tests for module System.IO.LockFile.
--- Copyright:    (c) 2013 Peter Trsko
+-- Copyright:    (c) 2013, 2014 Peter Trsko
 -- License:      BSD3
 --
 -- Maintainer:   peter.trsko@gmail.com
@@ -12,7 +12,7 @@ module TestCase.System.IO.LockFile (tests)
 
 import Control.Concurrent (threadDelay)
 
-import qualified Control.Monad.TaggedException as E (catch, hide)
+import qualified Control.Monad.TaggedException as E (catch, hideException)
 import Data.Default.Class (Default(def))
 import System.FilePath ((</>))
 import System.Directory (doesFileExist)
@@ -48,9 +48,9 @@ lockFileName = withLockExt $ "test" </> "test-lock-file"
 test_lockFileIsPresent :: Test
 test_lockFileIsPresent =
     testCase "Lock file is present while running computation"
-        $ E.hide (withLockFile def lockFileName (doesFileExist lockFileName))
-            >>= assertBool failureMsg
+        $ E.hideException theTest >>= assertBool failureMsg
   where
+    theTest = withLockFile def lockFileName (doesFileExist lockFileName)
     failureMsg = "Function withLockFile failed acquire lock file "
         ++ show lockFileName
 {-# ANN test_lockFileIsPresent "HLint: ignore Use camelCase" #-}
@@ -58,7 +58,7 @@ test_lockFileIsPresent =
 test_lockFileIsDeletedAfterwards :: Test
 test_lockFileIsDeletedAfterwards =
     testCase "Lock file is deleted afterwards" $ do
-        E.hide . withLockFile def lockFileName $ threadDelay 1000
+        E.hideException . withLockFile def lockFileName $ threadDelay 1000
         doesFileExist lockFileName >>= assertBool failureMsg . not
   where
     failureMsg = "Function withLockFile failed to delete lock file "
@@ -67,7 +67,7 @@ test_lockFileIsDeletedAfterwards =
 
 test_lockingFailedDueToNonExistingDirectory :: Test
 test_lockingFailedDueToNonExistingDirectory =
-    testCase "Lock file is deleted afterwards"
+    testCase "Locking failed due to non existing directory"
         $ (withLockFile def lockFileName' (threadDelay 1000 >> return False)
             `E.catch` handler) >>= assertBool failureMsg
   where

@@ -1,15 +1,16 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 -- |
 -- Module:       $HEADER$
 -- Description:  Low-level API for providing exclusive access to a resource
 --               using lock file.
--- Copyright:    (c) 2013 Peter Trsko
+-- Copyright:    (c) 2013, 2014 Peter Trsko
 -- License:      BSD3
 --
 -- Maintainer:   peter.trsko@gmail.com
 -- Stability:    experimental
--- Portability:  non-portable (CPP, DeriveDataTypeable)
+-- Portability:  non-portable (CPP, DeriveDataTypeable, NoImplicitPrelude)
 --
 -- Low-level API for providing exclusive access to a resource using lock file.
 module System.IO.LockFile.Internal
@@ -27,17 +28,25 @@ module System.IO.LockFile.Internal
     )
     where
 
+import Prelude (Num((-)), fromIntegral)
+
 import Control.Applicative ((<$>))
 import Control.Concurrent (threadDelay)
-import Control.Exception (IOException)
-import Control.Monad (when)
+import Control.Exception (Exception, IOException, ioError)
+import Control.Monad (Monad((>>), (>>=), return), when)
 import Data.Bits ((.|.))
+import Data.Bool (otherwise)
 import Data.Data (Data)
+import Data.Eq (Eq((==), (/=)))
+import Data.Ord (Ord((>)))
+import Data.Function ((.), ($))
+import Data.List ((++))
+import Data.Maybe (Maybe(Just, Nothing))
 import Data.Typeable (Typeable)
 import Data.Word (Word8, Word64)
 import Foreign.C (eEXIST, errnoToIOError, getErrno)
 import GHC.IO.Handle.FD (fdToHandle)
-import System.IO (Handle, hClose, hFlush, hPutStrLn)
+import System.IO (FilePath, Handle, IO, hClose, hFlush, hPutStrLn)
 import System.Posix.Internals
     ( c_close
     , c_getpid
@@ -50,22 +59,21 @@ import System.Posix.Internals
     , o_RDWR
     , withFilePath
     )
+import Text.Read (Read)
+import Text.Show (Show(showsPrec), show, shows, showString)
 
+import Control.Monad.Catch (MonadMask)
 import Control.Monad.IO.Class (MonadIO(liftIO))
+import System.Directory (removeFile)
+
 import Control.Monad.TaggedException
-    ( Exception
-    , MonadException(throw)
-    , Throws
+    ( Throws
+    , throw
     , mapException
     , onException'
     )
-#if MIN_VERSION_tagged_exception_core(1,1,0)
 import Control.Monad.TaggedException.Hidden (HiddenException)
-#else
-import Control.Monad.TaggedException.Hidden (HidableException)
-#endif
 import Data.Default.Class (Default(def))
-import System.Directory (removeFile)
 
 
 data RetryStrategy
@@ -83,8 +91,8 @@ instance Default RetryStrategy where
     def = Indefinitely
 
 data LockingParameters = LockingParameters
-    { retryToAcquireLock :: RetryStrategy
-    , sleepBetweenRetires :: Word64
+    { retryToAcquireLock :: !RetryStrategy
+    , sleepBetweenRetires :: !Word64
     -- ^ Sleep interval is in microseconds.
     }
   deriving (Data, Eq, Show, Read, Typeable)
@@ -113,20 +121,17 @@ instance Show LockingException where
       where shows' str x = showString str . showString ": " . shows x
 
 instance Exception LockingException
-#if MIN_VERSION_tagged_exception_core(1,1,0)
 instance HiddenException LockingException
-#else
-instance HidableException LockingException
-#endif
 
 -- | Map 'IOException' to 'LockingException'.
 wrapIOException
-    :: (MonadException m)
-    => Throws IOException m a -> Throws LockingException m a
+    :: (MonadMask m)
+    => Throws IOException m a
+    -> Throws LockingException m a
 wrapIOException = mapException CaughtIOException
 
 -- | Lift @IO@ and map any raised 'IOException' to 'LockingException'.
-io :: (MonadException m, MonadIO m) => IO a -> Throws LockingException m a
+io :: (MonadMask m, MonadIO m) => IO a -> Throws LockingException m a
 io = wrapIOException . liftIO
 
 -- | Open lock file write PID of a current process in to it and return its
@@ -135,7 +140,7 @@ io = wrapIOException . liftIO
 -- If operation doesn't succeed, then 'LockingException' is raised. See also
 -- 'LockingParameters' and 'RetryStrategy' for details.
 lock
-    :: (MonadException m, MonadIO m)
+    :: (MonadMask m, MonadIO m)
     => LockingParameters
     -> FilePath
     -> Throws LockingException m Handle
@@ -182,7 +187,7 @@ lock params = lock' $ case retryToAcquireLock params of
 
 -- | Close lock file handle and then delete it.
 unlock
-    :: (MonadException m, MonadIO m)
+    :: (MonadMask m, MonadIO m)
     => FilePath
     -> Handle
     -> Throws LockingException m ()

@@ -2,7 +2,7 @@
 -- |
 -- Module:       $HEADER$
 -- Description:  Provide exclusive access to a resource using lock file.
--- Copyright:    (c) 2013 Peter Trsko
+-- Copyright:    (c) 2013, 2014 Peter Trsko
 -- License:      BSD3
 --
 -- Maintainer:   peter.trsko@gmail.com
@@ -29,22 +29,15 @@ module System.IO.LockFile
     )
     where
 
+import Control.Monad.Catch (MonadMask(mask))
 import Control.Monad.IO.Class (MonadIO)
+
 import Control.Monad.TaggedException
     ( Throws
-#if MIN_VERSION_tagged_exception_core(1,1,0)
-    , MonadExceptionUtilities(mask')
-#endif
     , liftT
     , onException'
     )
-#if MIN_VERSION_tagged_exception_core(1,1,0)
-import Control.Monad.TaggedException.Hidden (HiddenException(hide))
-#else
-import Control.Monad.TaggedException.Hidden (HidableException(hide))
-import Control.Monad.TaggedException.Utilities
-    (MonadExceptionUtilities(mask'))
-#endif
+import Control.Monad.TaggedException.Hidden (HiddenException(hideException))
 
 import System.IO.LockFile.Internal
 
@@ -61,13 +54,13 @@ withLockExt = (++ ".lock")
 -- 'LockingException'. Only 'IOException' that occurred during locking or
 -- unlocking is mapped to 'LockingException'.
 withLockFile
-    :: (MonadExceptionUtilities m, MonadIO m)
+    :: (MonadMask m, MonadIO m)
     => LockingParameters
     -> FilePath
     -- ^ Lock file name.
     -> m a
     -> Throws LockingException m a
-withLockFile params lockFileName action = mask' $ \ restore -> do
+withLockFile params lockFileName action = mask $ \ restore -> do
     lockFileHandle <- lock params lockFileName
     r <- restore (liftT action)
         `onException'` unlock lockFileName lockFileHandle
@@ -76,7 +69,7 @@ withLockFile params lockFileName action = mask' $ \ restore -> do
 
 -- | Type restricted version of 'withLockFile'.
 withLockFile_
-    :: (MonadExceptionUtilities m, MonadIO m)
+    :: (MonadMask m, MonadIO m)
     => LockingParameters
     -> FilePath
     -- ^ Lock file name.
@@ -87,10 +80,10 @@ withLockFile_ = withLockFile
 -- | Version of 'withLockFile' that hides exception witness from type its
 -- signature.
 withLockFile'
-    :: (MonadExceptionUtilities m, MonadIO m)
+    :: (MonadMask m, MonadIO m)
     => LockingParameters
     -> FilePath
     -- ^ Lock file name.
     -> m a
     -> m a
-withLockFile' = ((hide .) .) . withLockFile
+withLockFile' = ((hideException .) .) . withLockFile
