@@ -82,7 +82,7 @@ data RetryStrategy
     -- ^ Don't retry at all.
     | Indefinitely
     -- ^ Retry indefinitely.
-    | NumberOfTimes Word8
+    | NumberOfTimes !Word8
     -- ^ Retry only specified number of times.
     -- If equal to zero then it is interpreted as 'No'.
   deriving (Data, Eq, Generic, Read, Show, Typeable)
