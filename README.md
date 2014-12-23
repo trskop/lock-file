@@ -21,12 +21,15 @@ Here we set it to `No` and therefore this code won't retry to acquire lock file
 after first failure.
 
 ```Haskell
+module Main (main)
+    where
+
 import Control.Concurrent (threadDelay)
     -- From base package, but GHC specific.
 
 import qualified Control.Monad.TaggedException as Exception (handle)
     -- From tagged-exception-core package.
-    -- https://github.com/trskop/tagged-exception
+    -- http://hackage.haskell.org/package/tagged-exception-core
 import Data.Default.Class (Default(def))
     -- From data-default-class package, alternatively it's possible to use
     -- data-default package version 0.5.2 and above.
@@ -40,9 +43,17 @@ import System.IO.LockFile
 
 
 main :: IO ()
-main = Exception.handle (putStrLn . ("Locking failed with: " ++) . show)
-    . withLockFile def{retryToAcquireLock = No} "/var/run/lock/my-example-lock"
-    $ threadDelay 1000000
+main = handleException
+    . withLockFile lockParams lockFile $ threadDelay 1000000
+  where
+    lockParams = def
+        { retryToAcquireLock = No
+        }
+
+    lockFile = "/var/run/lock/my-example-lock"
+
+    handleException = Exception.handle
+        $ putStrLn . ("Locking failed with: " ++) . show
 ```
 
 This command line example shows that trying to execute two instances of

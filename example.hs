@@ -1,7 +1,7 @@
 -- |
 -- Module:       Main
 -- Description:  Simple example that acquires lock for a short period of time.
--- Copyright:    (c) 2013 Peter Trsko
+-- Copyright:    (c) 2013, 2014 Peter Trsko
 -- License:      BSD3
 --
 -- Maintainer:   peter.trsko@gmail.com
@@ -15,7 +15,7 @@ import Control.Concurrent (threadDelay)
 
 import qualified Control.Monad.TaggedException as Exception (handle)
     -- From tagged-exception-core package.
-    -- https://github.com/trskop/tagged-exception
+    -- http://hackage.haskell.org/package/tagged-exception-core
 import Data.Default.Class (Default(def))
     -- From data-default-class package, alternatively it's possible to use
     -- data-default package version 0.5.2 and above.
@@ -29,6 +29,14 @@ import System.IO.LockFile
 
 
 main :: IO ()
-main = Exception.handle (putStrLn . ("Locking failed with: " ++) . show)
-    . withLockFile def{retryToAcquireLock = No} "/var/run/lock/my-example-lock"
-    $ threadDelay 1000000
+main = handleException
+    . withLockFile lockParams lockFile $ threadDelay 1000000
+  where
+    lockParams = def
+        { retryToAcquireLock = No
+        }
+
+    lockFile = "/var/run/lock/my-example-lock"
+
+    handleException = Exception.handle
+        $ putStrLn . ("Locking failed with: " ++) . show
