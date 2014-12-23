@@ -77,6 +77,8 @@ import Control.Monad.TaggedException.Hidden (HiddenException)
 import Data.Default.Class (Default(def))
 
 
+-- | Defines strategy for handling situations when lock-file is already
+-- acquired.
 data RetryStrategy
     = No
     -- ^ Don't retry at all.
@@ -87,24 +89,49 @@ data RetryStrategy
     -- If equal to zero then it is interpreted same way as 'No'.
   deriving (Data, Eq, Generic, Read, Show, Typeable)
 
--- | @def = 'Indefinitely'@
+-- | Defined as: @'def' = 'Indefinitely'@
 instance Default RetryStrategy where
     def = Indefinitely
 
+-- | Locking algorithm parameters. When doubt, use 'def', otherwise start with
+-- it. Example:
+--
+-- @
+-- lockedDo
+--     :: ('MonadMask' m, 'MonadIO' m)
+--     => 'FilePath'
+--     -> m a
+--     -> 'Throws' 'LockingException' m a
+-- lockedDo = 'System.IO.LockFile.withLockFile' lockParams lockFile
+--   where
+--     lockParams = 'def'
+--         { 'retryToAcquireLock' = 'NumberOfTimes' 3
+--         }
+--
+--     lockFile = 'System.IO.LockFile.withLockExt' \"\/var\/lock\/my-app\"
+-- @
 data LockingParameters = LockingParameters
     { retryToAcquireLock :: !RetryStrategy
+    -- ^ Strategy for handling situations when lock-file is already acquired.
     , sleepBetweenRetires :: !Word64
     -- ^ Sleep interval in microseconds.
     }
   deriving (Data, Eq, Generic, Read, Show, Typeable)
 
--- | @def = 'LockingParameters' def 8000000@
+-- | Defined as:
+--
+-- @
+-- 'def' = 'LockingParameters'
+--     { 'retryToAcquireLock'  = 'def'
+--     , 'sleepBetweenRetires' = 8000000  -- 8 seconds
+--     }
+-- @
 --
 -- Sleep interval is inspired by @lockfile@ command line utility that is part
 -- of Procmail.
 instance Default LockingParameters where
     def = LockingParameters
-        { retryToAcquireLock = def
+        { retryToAcquireLock  = def
         , sleepBetweenRetires = 8000000 -- 8 s
         }
 
