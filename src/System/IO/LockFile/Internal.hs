@@ -84,7 +84,7 @@ data RetryStrategy
     -- ^ Retry indefinitely.
     | NumberOfTimes !Word8
     -- ^ Retry only specified number of times.
-    -- If equal to zero then it is interpreted as 'No'.
+    -- If equal to zero then it is interpreted same way as 'No'.
   deriving (Data, Eq, Generic, Read, Show, Typeable)
 
 -- | @def = 'Indefinitely'@
@@ -94,7 +94,7 @@ instance Default RetryStrategy where
 data LockingParameters = LockingParameters
     { retryToAcquireLock :: !RetryStrategy
     , sleepBetweenRetires :: !Word64
-    -- ^ Sleep interval is in microseconds.
+    -- ^ Sleep interval in microseconds.
     }
   deriving (Data, Eq, Generic, Read, Show, Typeable)
 

@@ -83,7 +83,7 @@ withLockFile_
     -> Throws LockingException m ()
 withLockFile_ = withLockFile
 
--- | Version of 'withLockFile' that hides exception witness from type its
+-- | Version of 'withLockFile' that hides exception witness from its type
 -- signature.
 withLockFile'
     :: (MonadMask m, MonadIO m)
