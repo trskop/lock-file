@@ -125,3 +125,8 @@ test-suite lock-file-unit-tests
 source-repository head
   type:                 git
   location:             git://github.com/trskop/lock-file.git
+
+source-repository this
+  type:                 git
+  location:             git://github.com/trskop/lock-file.git
+  tag:                  0.5.0.0
