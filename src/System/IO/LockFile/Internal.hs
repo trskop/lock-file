@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 -- |
 -- Module:       $HEADER$
@@ -10,7 +11,7 @@
 --
 -- Maintainer:   peter.trsko@gmail.com
 -- Stability:    experimental
--- Portability:  CPP, DeriveDataTypeable, NoImplicitPrelude
+-- Portability:  CPP, DeriveDataTypeable, DeriveGeneric, NoImplicitPrelude
 --
 -- Low-level API for providing exclusive access to a resource using lock file.
 module System.IO.LockFile.Internal
@@ -44,6 +45,7 @@ import Data.Maybe (Maybe(Just, Nothing))
 import Data.Typeable (Typeable)
 import Data.Word (Word8, Word64)
 import Foreign.C (eEXIST, errnoToIOError, getErrno)
+import GHC.Generics (Generic)
 import GHC.IO.Handle.FD (fdToHandle)
 import System.IO (FilePath, Handle, IO, hClose, hFlush, hPutStr)
 import System.Posix.Internals
@@ -83,7 +85,7 @@ data RetryStrategy
     | NumberOfTimes Word8
     -- ^ Retry only specified number of times.
     -- If equal to zero then it is interpreted as 'No'.
-  deriving (Data, Eq, Show, Read, Typeable)
+  deriving (Data, Eq, Generic, Read, Show, Typeable)
 
 -- | @def = 'Indefinitely'@
 instance Default RetryStrategy where
@@ -94,7 +96,7 @@ data LockingParameters = LockingParameters
     , sleepBetweenRetires :: !Word64
     -- ^ Sleep interval is in microseconds.
     }
-  deriving (Data, Eq, Show, Read, Typeable)
+  deriving (Data, Eq, Generic, Read, Show, Typeable)
 
 -- | @def = 'LockingParameters' def 8000000@
 --
