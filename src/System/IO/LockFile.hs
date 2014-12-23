@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 -- |
 -- Module:       $HEADER$
 -- Description:  Provide exclusive access to a resource using lock file.
@@ -7,7 +8,7 @@
 --
 -- Maintainer:   peter.trsko@gmail.com
 -- Stability:    experimental
--- Portability:  non-portable (CPP)
+-- Portability:  CPP, NoImplicitPrelude
 --
 -- Provide exclusive access to a resource using lock file.
 module System.IO.LockFile
@@ -29,9 +30,14 @@ module System.IO.LockFile
     )
     where
 
-import Control.Monad.Catch (MonadMask(mask))
+import Control.Monad (Monad(return))
+import Data.Function ((.), ($))
+import Data.List ((++))
+import System.IO (FilePath)
+
 import Control.Monad.IO.Class (MonadIO)
 
+import Control.Monad.Catch (MonadMask(mask))
 import Control.Monad.TaggedException
     ( Throws
     , liftT
