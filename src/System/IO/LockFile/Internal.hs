@@ -10,7 +10,7 @@
 --
 -- Maintainer:   peter.trsko@gmail.com
 -- Stability:    experimental
--- Portability:  non-portable (CPP, DeriveDataTypeable, NoImplicitPrelude)
+-- Portability:  CPP, DeriveDataTypeable, NoImplicitPrelude
 --
 -- Low-level API for providing exclusive access to a resource using lock file.
 module System.IO.LockFile.Internal
@@ -61,10 +61,10 @@ import System.Posix.Internals
 import Text.Read (Read)
 import Text.Show (Show(showsPrec), show, shows, showString)
 
-import Control.Monad.Catch (MonadMask)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import System.Directory (removeFile)
 
+import Control.Monad.Catch (MonadMask)
 import Control.Monad.TaggedException
     ( Throws
     , throw
