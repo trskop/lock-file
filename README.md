@@ -48,10 +48,10 @@ This command line example shows that trying to execute two instances of
 `example` at the same time will result in failure of the second one.
 
 ```
-$ ghc example.hs 
+$ ghc example.hs
 [1 of 1] Compiling Main             ( example.hs, example.o )
 Linking example ...
-$ ./example & ./example 
+$ ./example & ./example
 [1] 7893
 Locking failed with: Unable to acquire lock file: "/var/run/lock/my-example-lock"
 $ [1]+  Done                    ./example
@@ -61,5 +61,6 @@ $ [1]+  Done                    ./example
 Building options
 ----------------
 
-* `-fpedantic` (disabled by default) --
+* `-fpedantic` (disabled by default)
+
   Pass additional warning flags including `-Werror` to GHC during compilation.
