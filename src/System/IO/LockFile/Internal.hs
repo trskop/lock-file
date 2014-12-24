@@ -93,8 +93,8 @@ data RetryStrategy
 instance Default RetryStrategy where
     def = Indefinitely
 
--- | Locking algorithm parameters. When doubt, use 'def', otherwise start with
--- it. Example:
+-- | Locking algorithm parameters. When in doubt, use 'def', otherwise start
+-- with it. Example:
 --
 -- @
 -- lockedDo
