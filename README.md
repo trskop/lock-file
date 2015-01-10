@@ -76,7 +76,7 @@ Building options
 
 * `-fpedantic` (disabled by default)
 
-  Pass additional warning flags including `-Werror` to GHC during compilation.
+  Pass additional warning flags to GHC.
 
 
 

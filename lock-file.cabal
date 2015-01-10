@@ -11,7 +11,7 @@ license:                BSD3
 license-file:           LICENSE
 author:                 Peter Trsko
 maintainer:             peter.trsko@gmail.com
-copyright:              (c) 2013, 2014 Peter Trško
+copyright:              (c) 2013-2015 Peter Trško
 category:               System
 build-type:             Simple
 cabal-version:          >=1.10
@@ -22,8 +22,7 @@ extra-source-files:
   , example.hs
 
 flag pedantic
-  description:
-    Pass additional warning flags including -Werror to GHC during compilation.
+  description:          Pass additional warning flags to GHC.
   default:              False
   manual:               True
 
@@ -45,19 +44,20 @@ library
     , exceptions > 0.6 && < 0.7
     , tagged-exception-core >= 2.0.0.0 && < 3
 
+  default-language:     Haskell2010
   other-extensions:
       CPP
     , DeriveDataTypeable
     , DeriveGeneric
     , NoImplicitPrelude
 
-  default-language:     Haskell2010
-
   ghc-options:          -Wall
-  if impl(ghc >= 6.8)
-    ghc-options:        -fwarn-tabs
   if flag(pedantic)
-    ghc-options:        -Werror
+    ghc-options:
+      -fwarn-tabs
+      -fwarn-implicit-prelude
+--    -fwarn-missing-import-lists
+--    -Werror
 
 test-suite lock-file-unit-tests
   hs-source-dirs:       src, test
