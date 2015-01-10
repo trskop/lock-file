@@ -4,6 +4,8 @@ synopsis:               Provide exclusive access to a resource using lock file.
 description:
   Provide exclusive access to a resource using lock file, which are files whose
   purpose is to signal by their presence that some resource is locked.
+  .
+  Code example can be found in "System.IO.LockFile" module.
 
 homepage:               https://github.com/trskop/lock-file
 bug-reports:            https://github.com/trskop/lock-file/issues
