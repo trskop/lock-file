@@ -4,6 +4,8 @@
 ## Version 0.5.0.1
 
 * Dropping explicit dependency on [QuickCheck][].
+* Uploaded to [Hackage][]:
+  <http://hackage.haskell.org/package/lock-file-0.5.0.1>
 
 
 ## Version 0.5.0.0
