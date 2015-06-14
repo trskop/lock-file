@@ -58,7 +58,7 @@ library
     ghc-options:
       -fwarn-tabs
       -fwarn-implicit-prelude
---    -fwarn-missing-import-lists
+      -fwarn-missing-import-lists
 --    -Werror
 
 test-suite lock-file-unit-tests
@@ -121,7 +121,7 @@ test-suite lock-file-unit-tests
     ghc-options:
       -fwarn-tabs
       -fwarn-implicit-prelude
---    -fwarn-missing-import-lists
+      -fwarn-missing-import-lists
 --    -Werror
 
 source-repository head

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 -- |
 -- Module:       $HEADER$
 -- Description:  Tests for module System.IO.LockFile.
@@ -10,7 +11,14 @@
 module TestCase.System.IO.LockFile (tests)
     where
 
+import Control.Monad (Monad((>>), (>>=), return))
 import Control.Concurrent (threadDelay)
+import Data.Bool (Bool(False, True), not)
+import Data.Eq (Eq((==)))
+import Data.Function ((.), ($))
+import Data.List ((++))
+import System.IO (FilePath)
+import Text.Show (Show(show))
 
 import qualified Control.Monad.TaggedException as E (catch, hideException)
 import Data.Default.Class (Default(def))
@@ -22,6 +30,10 @@ import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.HUnit (assertBool)
 
 import System.IO.LockFile
+  ( LockingException(CaughtIOException)
+  , withLockExt
+  , withLockFile
+  )
 
 
 tests :: [Test]
