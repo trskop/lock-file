@@ -49,6 +49,16 @@ import Control.Monad.TaggedException
 import Control.Monad.TaggedException.Hidden (HiddenException(hideException))
 
 import System.IO.LockFile.Internal
+    ( LockingException(CaughtIOException, UnableToAcquireLockFile)
+    , LockingParameters
+        ( LockingParameters
+        , retryToAcquireLock
+        , sleepBetweenRetires
+        )
+    , RetryStrategy(Indefinitely, No, NumberOfTimes)
+    , lock
+    , unlock
+    )
 
 
 -- | Append default lock file extension. Useful e.g. for generating lock file

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 -- |
 -- Module:       Main
 -- Description:  Tests main
@@ -11,6 +12,8 @@
 -- Tests main.
 module Main (main)
     where
+
+import System.IO (IO)
 
 import Test.Framework (defaultMain)
 
