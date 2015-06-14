@@ -3,7 +3,7 @@ language: haskell
 ghc:
   - 7.8
   - 7.6
-# - 7.4
+  - 7.4
 
 script:
   # Option -fpedantic turns on additional wornings in addition to -Wall.
