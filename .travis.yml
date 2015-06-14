@@ -1,13 +1,13 @@
 language: haskell
 
 ghc:
-  # GHC 7.4.* is not supported by tagged-exception-core Cabal package.
   - 7.8
   - 7.6
+# - 7.4
 
 script:
   # Option -fpedantic turns on additional wornings in addition to -Wall.
-  - cabal configure -fpedantic && cabal build
+  - cabal configure -fpedantic --enable-tests && cabal build && cabal test --show-details=always
 
   # Following line tests if sdist package is created correctly.
-  - cabal sdist && cabal install dist/lock-file-*.tar.gz
+  - cabal sdist && cabal install --enable-tests dist/lock-file-*.tar.gz
