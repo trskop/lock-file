@@ -2,9 +2,10 @@
 
 ## Version 0.5.0.2
 
-* Building on GHC 7.10. (new)
+* Building on GHC from 7.6 up to 7.10. (new)
 * Relaxed upper bound of [exceptions][] package to include 0.8 branch. This
   mirrors dependencies of [tagged-exception-core][] package. (new)
+* Enabling `-fwarn-missing-import-lists` with `-fpedantic`. (new)
 
 
 ## Version 0.5.0.1
