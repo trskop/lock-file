@@ -6,7 +6,7 @@
 -- Module:       $HEADER$
 -- Description:  Low-level API for providing exclusive access to a resource
 --               using lock file.
--- Copyright:    (c) 2013, 2014 Peter Trsko
+-- Copyright:    (c) 2013-2015, Peter Trško
 -- License:      BSD3
 --
 -- Maintainer:   peter.trsko@gmail.com

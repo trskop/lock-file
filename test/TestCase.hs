@@ -2,7 +2,7 @@
 -- |
 -- Module:       $HEADER$
 -- Description:  All test cases aggregated and exported as tests :: [Test].
--- Copyright:    (c) 2013 Peter Trsko
+-- Copyright:    (c) 2013, 2015, Peter Trško
 -- License:      BSD3
 --
 -- Maintainer:   peter.trsko@gmail.com

@@ -6,6 +6,8 @@
 * Relaxed upper bound of [exceptions][] package to include 0.8 branch. This
   mirrors dependencies of [tagged-exception-core][] package. (new)
 * Enabling `-fwarn-missing-import-lists` with `-fpedantic`. (new)
+* Uploaded to [Hackage][]:
+  <http://hackage.haskell.org/package/lock-file-0.5.0.2>
 
 
 ## Version 0.5.0.1
