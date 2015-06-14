@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+#ifdef HAVE_GHC_GENERICS
 {-# LANGUAGE DeriveGeneric #-}
+#endif
 {-# LANGUAGE NoImplicitPrelude #-}
 -- |
 -- Module:       $HEADER$
@@ -45,7 +47,9 @@ import Data.Maybe (Maybe(Just, Nothing))
 import Data.Typeable (Typeable)
 import Data.Word (Word8, Word64)
 import Foreign.C (eEXIST, errnoToIOError, getErrno)
+#ifdef HAVE_GHC_GENERICS
 import GHC.Generics (Generic)
+#endif
 import GHC.IO.Handle.FD (fdToHandle)
 import System.IO (FilePath, Handle, IO, hClose, hFlush, hPutStr)
 import System.Posix.Internals
@@ -87,7 +91,13 @@ data RetryStrategy
     | NumberOfTimes !Word8
     -- ^ Retry only specified number of times.
     -- If equal to zero then it is interpreted same way as 'No'.
-  deriving (Data, Eq, Generic, Read, Show, Typeable)
+  deriving
+    ( Data, Eq
+#if HAVE_GHC_GENERICS
+    , Generic
+#endif
+    , Read, Show, Typeable
+    )
 
 -- | Defined as: @'def' = 'Indefinitely'@
 instance Default RetryStrategy where
@@ -116,7 +126,13 @@ data LockingParameters = LockingParameters
     , sleepBetweenRetires :: !Word64
     -- ^ Sleep interval in microseconds.
     }
-  deriving (Data, Eq, Generic, Read, Show, Typeable)
+  deriving
+    ( Data, Eq
+#ifdef HAVE_GHC_GENERICS
+    , Generic
+#endif
+    , Read, Show, Typeable
+    )
 
 -- | Defined as:
 --
