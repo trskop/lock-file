@@ -36,9 +36,8 @@ import Control.Concurrent (threadDelay)
 import Control.Exception (Exception, IOException, ioError)
 import Control.Monad (Monad((>>), (>>=), return), when)
 import Data.Bits ((.|.))
-import Data.Bool (otherwise)
 import Data.Data (Data)
-import Data.Eq (Eq((==), (/=)))
+import Data.Eq (Eq((/=)))
 import Data.Ord (Ord((>)))
 import Data.Function ((.), ($))
 import Data.Maybe (Maybe(Just, Nothing))
@@ -145,7 +144,7 @@ data LockingException
 instance Show LockingException where
     showsPrec _ e = case e of
         UnableToAcquireLockFile fp -> shows' "Unable to acquire lock file" fp
-        CaughtIOException ioe -> shows' "Caught IO exception" ioe
+        CaughtIOException ioe      -> shows' "Caught IO exception" ioe
       where shows' str x = showString str . showString ": " . shows x
 
 instance Exception LockingException
@@ -174,10 +173,10 @@ lock
     -> Throws LockingException m Handle
 lock params = lock' $ case retryToAcquireLock params of
     NumberOfTimes 0 -> params{retryToAcquireLock = No}
-    _ -> params
+    _               -> params
   where
     openLockFile lockFileName = io $ do
-        fd <- withFilePath lockFileName $ \ fp -> c_open fp openFlags 0o644
+        fd <- withFilePath lockFileName $ \fp -> c_open fp openFlags 0o644
         if fd > 0
             then Just <$> fdToHandle fd `onException'` c_close fd
             else do
@@ -190,20 +189,21 @@ lock params = lock' $ case retryToAcquireLock params of
         openFlags = o_NONBLOCK .|. o_NOCTTY .|. o_RDWR .|. o_CREAT .|. o_EXCL
             .|. o_BINARY
 
-    lock' params' lockFileName
-      | retryToAcquireLock params' == NumberOfTimes 0 = failedToAcquireLockFile
-      | otherwise = do
+    lock' params' lockFileName = case retryToAcquireLock params' of
+        NumberOfTimes 0 -> failedToAcquireLockFile
+        _               -> do
             lockFileHandle <- openLockFile lockFileName
             case lockFileHandle of
-                Nothing -> case retryToAcquireLock params' of
-                    No -> failedToAcquireLockFile
-                    _ -> do
-                        io $ threadDelay sleepBetweenRetires'
-                        lock' paramsDecRetries lockFileName
-                Just h -> io $ do
+                Just h  -> io $ do
                     c_getpid >>= hPutStr h . show
                     hFlush h
                     return h
+                Nothing ->
+                    case retryToAcquireLock params' of
+                        No -> failedToAcquireLockFile
+                        _  -> do
+                            io $ threadDelay sleepBetweenRetires'
+                            lock' paramsDecRetries lockFileName
       where
         sleepBetweenRetires' = fromIntegral $ sleepBetweenRetires params'
         failedToAcquireLockFile = throw $ UnableToAcquireLockFile lockFileName
@@ -211,7 +211,7 @@ lock params = lock' $ case retryToAcquireLock params of
         paramsDecRetries = case retryToAcquireLock params' of
             NumberOfTimes n ->
                 params'{retryToAcquireLock = NumberOfTimes $ n - 1}
-            _ -> params'
+            _               -> params'
 
 -- | Close lock file handle and then delete it.
 unlock
