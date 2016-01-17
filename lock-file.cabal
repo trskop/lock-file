@@ -1,5 +1,5 @@
 name:                   lock-file
-version:                0.5.0.2
+version:                0.5.0.3
 synopsis:               Provide exclusive access to a resource using lock file.
 description:
   Provide exclusive access to a resource using lock file, which are files whose
@@ -127,7 +127,7 @@ source-repository head
   type:                 git
   location:             git://github.com/trskop/lock-file.git
 
-source-repository this
-  type:                 git
-  location:             git://github.com/trskop/lock-file.git
-  tag:                  0.5.0.2
+--source-repository this
+--  type:                 git
+--  location:             git://github.com/trskop/lock-file.git
+--  tag:                  0.5.0.3
