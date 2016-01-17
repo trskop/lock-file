@@ -6,7 +6,7 @@
 -- Module:       $HEADER$
 -- Description:  Low-level API for providing exclusive access to a resource
 --               using lock file.
--- Copyright:    (c) 2013-2015, Peter Trško
+-- Copyright:    (c) 2013-2016, Peter Trško
 -- License:      BSD3
 --
 -- Maintainer:   peter.trsko@gmail.com
@@ -84,7 +84,7 @@ data RetryStrategy
     -- ^ Don't retry at all.
     | Indefinitely
     -- ^ Retry indefinitely.
-    | NumberOfTimes !Word8
+    | NumberOfTimes {-# UNPACK #-} !Word8
     -- ^ Retry only specified number of times.
     -- If equal to zero then it is interpreted same way as 'No'.
   deriving (Data, Eq, Generic, Read, Show, Typeable)
@@ -113,7 +113,7 @@ instance Default RetryStrategy where
 data LockingParameters = LockingParameters
     { retryToAcquireLock :: !RetryStrategy
     -- ^ Strategy for handling situations when lock-file is already acquired.
-    , sleepBetweenRetires :: !Word64
+    , sleepBetweenRetires :: {-# UNPACK #-} !Word64
     -- ^ Sleep interval in microseconds.
     }
   deriving (Data, Eq, Generic, Read, Show, Typeable)
