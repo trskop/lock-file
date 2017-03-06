@@ -3,12 +3,14 @@
 
 ## Version 0.5.0.3 (unreleased)
 
+* Explicitly unpacking strict fields in data types. (**change**)
+* Correcting name of `sleepBetweenRetries` field of `LockingParameters`.
+  (**breaking change**)
 * Relaxed bounds on [base][] to include versions up to version 5. (**change**)
 * Bumping upper [transformers][] bound to include 0.5.\* versions. (**change**)
 * Bumping upper bound of [directory][] to include 1.3.\* branch. (**change**)
 * Bumping upper bound of [data-default-class][] to include 0.1.\* branch.
   (**change**)
-* Explicitly unpacking strict fields in data types. (**change**)
 
 
 ## Version 0.5.0.2

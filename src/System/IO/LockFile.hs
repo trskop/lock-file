@@ -53,7 +53,7 @@ import System.IO.LockFile.Internal
     , LockingParameters
         ( LockingParameters
         , retryToAcquireLock
-        , sleepBetweenRetires
+        , sleepBetweenRetries
         )
     , RetryStrategy(Indefinitely, No, NumberOfTimes)
     , lock

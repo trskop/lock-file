@@ -112,7 +112,7 @@ instance Default RetryStrategy where
 data LockingParameters = LockingParameters
     { retryToAcquireLock :: !RetryStrategy
     -- ^ Strategy for handling situations when lock-file is already acquired.
-    , sleepBetweenRetires :: {-# UNPACK #-} !Word64
+    , sleepBetweenRetries :: {-# UNPACK #-} !Word64
     -- ^ Sleep interval in microseconds.
     }
   deriving (Data, Eq, Generic, Read, Show, Typeable)
@@ -122,7 +122,7 @@ data LockingParameters = LockingParameters
 -- @
 -- 'def' = 'LockingParameters'
 --     { 'retryToAcquireLock'  = 'def'
---     , 'sleepBetweenRetires' = 8000000  -- 8 seconds
+--     , 'sleepBetweenRetries' = 8000000  -- 8 seconds
 --     }
 -- @
 --
@@ -131,7 +131,7 @@ data LockingParameters = LockingParameters
 instance Default LockingParameters where
     def = LockingParameters
         { retryToAcquireLock  = def
-        , sleepBetweenRetires = 8000000 -- 8 s
+        , sleepBetweenRetries = 8000000 -- 8 s
         }
 
 data LockingException
@@ -202,10 +202,10 @@ lock params = lock' $ case retryToAcquireLock params of
                     case retryToAcquireLock params' of
                         No -> failedToAcquireLockFile
                         _  -> do
-                            io $ threadDelay sleepBetweenRetires'
+                            io $ threadDelay sleepBetweenRetries'
                             lock' paramsDecRetries lockFileName
       where
-        sleepBetweenRetires' = fromIntegral $ sleepBetweenRetires params'
+        sleepBetweenRetries' = fromIntegral $ sleepBetweenRetries params'
         failedToAcquireLockFile = throw $ UnableToAcquireLockFile lockFileName
 
         paramsDecRetries = case retryToAcquireLock params' of
