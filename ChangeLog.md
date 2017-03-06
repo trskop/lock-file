@@ -1,10 +1,13 @@
 # ChangeLog / ReleaseNotes
 
 
-## Version 0.5.0.3
+## Version 0.5.0.3 (unreleased)
 
-* Relaxed bounds on base to include versions up to version 5. (**change**)
-* Bumping upper transformer bound to include 0.5.\* versions. (**change**)
+* Relaxed bounds on [base][] to include versions up to version 5. (**change**)
+* Bumping upper [transformers][] bound to include 0.5.\* versions. (**change**)
+* Bumping upper bound of [directory][] to include 1.3.\* branch. (**change**)
+* Bumping upper bound of [data-default-class][] to include 0.1.\* branch.
+  (**change**)
 * Explicitly unpacking strict fields in data types. (**change**)
 
 
@@ -33,15 +36,11 @@
 
 
 
-[Hackage]:
-  http://hackage.haskell.org/
-  "HackageDB (or just Hackage) is a collection of releases of Haskell packages."
-[QuickCheck]:
-  http://hackage.haskell.org/package/QuickCheck
-  "QuickCheck package on Hackage"
-[exceptions]:
-  http://hackage.haskell.org/package/exceptions
-  "exceptions package on Hackage"
-[tagged-exception-core]:
-  http://hackage.haskell.org/package/tagged-exception-core
-  "tagged-exception-core package on Hackage"
+[base]: http://hackage.haskell.org/package/base "base package on Hackage"
+[data-default-class]: http://hackage.haskell.org/package/data-default-class "data-default-class package on Hackage"
+[directory]: http://hackage.haskell.org/package/directory "directory package on Hackage"
+[Hackage]: http://hackage.haskell.org/ "HackageDB (or just Hackage) is a collection of releases of Haskell packages."
+[QuickCheck]: http://hackage.haskell.org/package/QuickCheck "QuickCheck package on Hackage"
+[exceptions]: http://hackage.haskell.org/package/exceptions "exceptions package on Hackage"
+[tagged-exception-core]: http://hackage.haskell.org/package/tagged-exception-core "tagged-exception-core package on Hackage"
+[transformers]: http://hackage.haskell.org/package/transformers "transformers package on Hackage"
