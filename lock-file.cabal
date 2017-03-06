@@ -36,15 +36,12 @@ library
     , System.IO.LockFile.Internal
 
   build-depends:
-    -- {{{ Distributed with GHC or Haskell Platform ---------------------------
-      base >= 4.5 && < 5
-    , directory >= 1.1 && < 1.4
-    , transformers >= 0.3 && < 0.6
-    -- }}} Distributed with GHC or Haskell Platform ---------------------------
-
+      base >=4.5 && <5
     , data-default-class >=0.0 && <0.2
-    , exceptions > 0.6 && < 0.9
-    , tagged-exception-core >= 2.0.0.0 && < 3
+    , directory >=1.1 && <1.4
+    , exceptions >0.6 && <0.9
+    , tagged-exception-core >=2.0.0.0 && <3
+    , transformers >=0.3 && <0.6
 
   default-language:     Haskell2010
   other-extensions:
@@ -59,7 +56,7 @@ library
       -fwarn-tabs
       -fwarn-implicit-prelude
       -fwarn-missing-import-lists
---    -Werror
+      -Werror
 
 test-suite lock-file-unit-tests
   hs-source-dirs:       src, test
@@ -76,35 +73,29 @@ test-suite lock-file-unit-tests
 
   build-depends:
     -- {{{ Dependencies of lock-file library ----------------------------------
-    -- {{{ Distributed with GHC or Haskell Platform ---------------------------
-      base >= 4.5 && < 5
-    , directory >= 1.1 && < 1.4
-    , transformers >= 0.3 && < 0.6
-    -- }}} Distributed with GHC or Haskell Platform ---------------------------
-
+      base >=4.5 && <5
     , data-default-class >=0.0 && <0.2
-    , exceptions > 0.6 && < 0.9
-    , tagged-exception-core >= 2.0.0.0 && < 3
+    , directory >=1.1 && <1.4
+    , exceptions >0.6 && <0.9
+    , tagged-exception-core >=2.0.0.0 && <3
+    , transformers >=0.3 && <0.6
     -- }}} Dependencies of lock-file library ----------------------------------
 
     -- {{{ Test-suite dependencies --------------------------------------------
-    -- {{{ Distributed with GHC or Haskell Platform ---------------------------
-    , filepath == 1.3.* || == 1.4.*
-    , HUnit >= 1.2 && < 2
+    , filepath ==1.3.* || ==1.4.*
+    , HUnit >=1.2 && <2
       -- ^ Same constraints as test-framework-hunit
-    -- }}} Distributed with GHC or Haskell Platform ---------------------------
-
-    , test-framework >= 0.8 && < 1
+    , test-framework >=0.8 && <1
       -- ^ Same constraint as test-framework-skip, other packages that
       -- depend on it have less restrictive bounds.
-    , test-framework-hunit >= 0.2.6
+    , test-framework-hunit >=0.2.6
       -- ^ Lower versions have more restrictive bounds on test-framework.
-    , test-framework-quickcheck2 >= 0.3
+    , test-framework-quickcheck2 >=0.3
       -- ^ There were changes in QuickCheck bounds in 0.2 branch and last one
       -- on it had a compilation failure on Hackage.
 
       -- Not required right now:
- -- , test-framework-skip == 1.*
+ -- , test-framework-skip ==1.*
       -- ^ Currently there is only version 1.0.
     -- }}} Test-suite dependencies --------------------------------------------
 
@@ -121,7 +112,7 @@ test-suite lock-file-unit-tests
       -fwarn-tabs
       -fwarn-implicit-prelude
       -fwarn-missing-import-lists
---    -Werror
+      -Werror
 
 source-repository head
   type:                 git
