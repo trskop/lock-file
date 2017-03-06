@@ -1,7 +1,7 @@
 # ChangeLog / ReleaseNotes
 
 
-## Version 0.5.0.3 (unreleased)
+## Version 0.6.0.0 (unreleased)
 
 * Explicitly unpacking strict fields in data types. (**change**)
 * Correcting name of `sleepBetweenRetries` field of `LockingParameters`.
