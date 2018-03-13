@@ -1,12 +1,15 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 module Main
   where
 
-import Control.Monad (Monad(return), (>=>))
+import Control.Applicative (pure)
 import Control.Concurrent (threadDelay)
+import Control.Exception (catch)
+import Control.Monad ((>=>), (>>=))
 import Data.Function ((.), ($), const)
 import Data.Functor ((<$>))
-import Data.List ((++))
+import Data.Monoid ((<>))
 import System.Environment (getEnv, getProgName)
 import System.Exit (exitFailure)
 import System.IO (IO, FilePath, hPutStrLn, putStrLn, stderr)
@@ -14,8 +17,7 @@ import Text.Show (show, showString)
 
 import System.Posix.User (getEffectiveUserID)
 
-import Control.Monad.TaggedException (catch)
-import Data.Default.Class (Default(def))
+import Data.Default.Class (def)
 import System.IO.LockFile
     ( LockingException(CaughtIOException, UnableToAcquireLockFile)
     , LockingParameters(retryToAcquireLock)
@@ -32,22 +34,20 @@ withPidFile m = do
   where
     mkPidFilePath :: IO FilePath
     mkPidFilePath = do
-        fileName <- (++ ".pid") <$> getProgName
-        euid <- getEffectiveUserID
-        case euid of
-            0 -> return $ "/var/run/" ++ fileName
-            _ -> (++ ('/' : '.' : fileName)) <$> getEnv "HOME"
+        fileName <- (<> ".pid") <$> getProgName
+        getEffectiveUserID >>= \case
+            0 -> pure $ "/var/run/" <> fileName
+            _ -> (<> ('/' : '.' : fileName)) <$> getEnv "HOME"
                 -- This may throw exception if $HOME environment varialbe is
                 -- not set.
 
     printLockingException :: FilePath -> LockingException -> IO ()
-    printLockingException filePath exception = hPutStrLn stderr errorMsg
+    printLockingException filePath = hPutStrLn stderr . mkMsg . \case
+        UnableToAcquireLockFile _ -> "File already exists."
+        CaughtIOException       e -> show e
       where
-        errorMsg = case exception of
-            UnableToAcquireLockFile _ -> mkMsg "File already exists."
-            CaughtIOException       e -> mkMsg $ show e
-
-        mkMsg = showString filePath . showString ": Unable to create PID file: "
+        mkMsg =
+            showString filePath . showString ": Unable to create PID file: "
 
 main :: IO ()
 main = withPidFile $ do

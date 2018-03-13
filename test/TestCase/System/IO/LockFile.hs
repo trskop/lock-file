@@ -1,8 +1,9 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 -- |
 -- Module:       $HEADER$
 -- Description:  Tests for module System.IO.LockFile.
--- Copyright:    (c) 2013-2015, Peter Trško
+-- Copyright:    (c) 2013-2015, 2018 Peter Trško
 -- License:      BSD3
 --
 -- Maintainer:   peter.trsko@gmail.com
@@ -11,16 +12,18 @@
 module TestCase.System.IO.LockFile (tests)
     where
 
-import Control.Monad (Monad((>>), (>>=), return))
+import Control.Applicative (pure)
 import Control.Concurrent (threadDelay)
+import qualified Control.Exception as Exception (catch)
+import Control.Monad ((>>=))
 import Data.Bool (Bool(False, True), not)
-import Data.Eq (Eq((==)))
+import Data.Eq ((==))
 import Data.Function ((.), ($))
+import Data.Functor ((<$))
 import Data.List ((++))
 import System.IO (FilePath)
-import Text.Show (Show(show))
+import Text.Show (show)
 
-import qualified Control.Monad.TaggedException as E (catch, hideException)
 import Data.Default.Class (Default(def))
 import System.FilePath ((</>))
 import System.Directory (doesFileExist)
@@ -60,7 +63,7 @@ lockFileName = withLockExt $ "test" </> "test-lock-file"
 test_lockFileIsPresent :: Test
 test_lockFileIsPresent =
     testCase "Lock file is present while running computation"
-        $ E.hideException theTest >>= assertBool failureMsg
+        $ theTest >>= assertBool failureMsg
   where
     theTest = withLockFile def lockFileName (doesFileExist lockFileName)
     failureMsg = "Function withLockFile failed acquire lock file "
@@ -70,7 +73,7 @@ test_lockFileIsPresent =
 test_lockFileIsDeletedAfterwards :: Test
 test_lockFileIsDeletedAfterwards =
     testCase "Lock file is deleted afterwards" $ do
-        E.hideException . withLockFile def lockFileName $ threadDelay 1000
+        withLockFile def lockFileName $ threadDelay 1000
         doesFileExist lockFileName >>= assertBool failureMsg . not
   where
     failureMsg = "Function withLockFile failed to delete lock file "
@@ -80,13 +83,13 @@ test_lockFileIsDeletedAfterwards =
 test_lockingFailedDueToNonExistingDirectory :: Test
 test_lockingFailedDueToNonExistingDirectory =
     testCase "Locking failed due to non existing directory"
-        $ (withLockFile def lockFileName' (threadDelay 1000 >> return False)
-            `E.catch` handler) >>= assertBool failureMsg
+        $ (withLockFile def lockFileName' (False <$ threadDelay 1000)
+            `Exception.catch` handler) >>= assertBool failureMsg
   where
     lockFileName' = "this-directory-does-not-exist" </> lockFileName
     failureMsg = "Function withLockFile should fail when creating lock in non"
         ++ " existing directory: " ++ show lockFileName'
-    handler e = return $ case e of
+    handler = pure . \case
         CaughtIOException _ -> True
         _ -> False
 {-# ANN test_lockingFailedDueToNonExistingDirectory

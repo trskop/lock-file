@@ -1,14 +1,13 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 -- |
 -- Module:       $HEADER$
 -- Description:  Provide exclusive access to a resource using lock file.
--- Copyright:    (c) 2013-2015, Peter Trško
+-- Copyright:    (c) 2013-2015, 2018 Peter Trško
 -- License:      BSD3
 --
 -- Maintainer:   peter.trsko@gmail.com
 -- Stability:    experimental
--- Portability:  CPP, NoImplicitPrelude
+-- Portability:  GHC specific language extensions.
 --
 -- Provide exclusive access to a resource using lock file.
 module System.IO.LockFile
@@ -19,7 +18,6 @@ module System.IO.LockFile
     -- * Run computation with locked resource.
       withLockFile
     , withLockFile_
-    , withLockFile'
 
     -- * Configuration
     , LockingParameters(..)
@@ -33,20 +31,14 @@ module System.IO.LockFile
     )
     where
 
-import Control.Monad (Monad(return))
+import Control.Applicative (pure)
+import Control.Monad.IO.Class (MonadIO)
 import Data.Function ((.), ($))
+import Data.Functor (void)
 import Data.List ((++))
 import System.IO (FilePath)
 
-import Control.Monad.IO.Class (MonadIO)
-
-import Control.Monad.Catch (MonadMask(mask))
-import Control.Monad.TaggedException
-    ( Throws
-    , liftT
-    , onException'
-    )
-import Control.Monad.TaggedException.Hidden (HiddenException(hideException))
+import Control.Monad.Catch (MonadMask, mask, onException)
 
 import System.IO.LockFile.Internal
     ( LockingException(CaughtIOException, UnableToAcquireLockFile)
@@ -79,34 +71,25 @@ withLockFile
     -> FilePath
     -- ^ Lock file name.
     -> m a
-    -> Throws LockingException m a
-withLockFile params lockFileName action = mask $ \ restore -> do
+    -> m a
+withLockFile params lockFileName action = mask $ \restore -> do
     lockFileHandle <- lock params lockFileName
-    r <- restore (liftT action)
-        `onException'` unlock lockFileName lockFileHandle
-    _ <- unlock lockFileName lockFileHandle
-    return r
+    r <- restore action `onException` unlock' lockFileHandle
+    _ <- unlock' lockFileHandle
+    pure r
+  where
+    unlock' = unlock lockFileName
 
--- | Type restricted version of 'withLockFile'.
+-- | Type restricted version of 'withLockFile' that discards result of the
+-- action.
 withLockFile_
     :: (MonadMask m, MonadIO m)
     => LockingParameters
     -> FilePath
     -- ^ Lock file name.
+    -> m a
     -> m ()
-    -> Throws LockingException m ()
-withLockFile_ = withLockFile
-
--- | Version of 'withLockFile' that hides exception witness from its type
--- signature.
-withLockFile'
-    :: (MonadMask m, MonadIO m)
-    => LockingParameters
-    -> FilePath
-    -- ^ Lock file name.
-    -> m a
-    -> m a
-withLockFile' = ((hideException .) .) . withLockFile
+withLockFile_ = ((void .) .) . withLockFile
 
 -- $usageExample
 --
@@ -116,22 +99,22 @@ withLockFile' = ((hideException .) .) . withLockFile
 -- acquire lock file after first failure.
 --
 -- @
+-- {-\# LANGUAGE TypeApplications \#-}
 -- module Main (main)
---     where
+--   where
 --
--- import Control.Concurrent (threadDelay)
+-- import Control.Concurrent ('Control.Concurrent.threadDelay')
 --     -- From base package, but GHC specific.
+-- import qualified Control.Exception as Exception ('Control.Exception.handle')
 --
--- import qualified Control.Monad.TaggedException as Exception (handle)
---     -- From tagged-exception-core package.
---     -- <http://hackage.haskell.org/package/tagged-exception-core>
--- import Data.Default.Class (Default(def))
+-- import Data.Default.Class ('Data.Default.Class.def')
 --     -- From data-default-class package, alternatively it's possible to use
 --     -- data-default package version 0.5.2 and above.
 --     -- <http://hackage.haskell.org/package/data-default-class>
 --     -- <http://hackage.haskell.org/package/data-default>
 -- import "System.IO.LockFile"
---     ( 'LockingParameters'('retryToAcquireLock')
+--     ( 'LockingException'
+--     , 'LockingParameters'('retryToAcquireLock')
 --     , 'RetryStrategy'('No')
 --     , 'withLockFile'
 --     )
@@ -141,14 +124,14 @@ withLockFile' = ((hideException .) .) . withLockFile
 -- main = handleException
 --     . 'withLockFile' lockParams lockFile $ threadDelay 1000000
 --   where
---     lockParams = def
+--     lockParams = 'Data.Default.Class.def'
 --         { 'retryToAcquireLock' = 'No'
 --         }
 --
 --     lockFile = \"\/var\/run\/lock\/my-example-lock\"
 --
 --     handleException = Exception.handle
---         $ putStrLn . ("Locking failed with: " ++) . show
+--         $ putStrLn . (\"Locking failed with: \" ++) . show @'LockingException'
 -- @
 --
 -- This command line example shows that trying to execute two instances of

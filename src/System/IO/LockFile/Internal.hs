@@ -6,12 +6,12 @@
 -- Module:       $HEADER$
 -- Description:  Low-level API for providing exclusive access to a resource
 --               using lock file.
--- Copyright:    (c) 2013-2016, Peter Trško
+-- Copyright:    (c) 2013-2016, 2018 Peter Trško
 -- License:      BSD3
 --
 -- Maintainer:   peter.trsko@gmail.com
 -- Stability:    experimental
--- Portability:  CPP, DeriveDataTypeable, DeriveGeneric, NoImplicitPrelude
+-- Portability:  GHC specific language extensions; POSIX.
 --
 -- Low-level API for providing exclusive access to a resource using lock file.
 module System.IO.LockFile.Internal
@@ -27,19 +27,29 @@ module System.IO.LockFile.Internal
     -- * Exceptions
     , LockingException(..)
     )
-    where
+  where
 
-import Prelude (Num((-)), fromIntegral)
+import Prelude ((-), fromIntegral)
 
-import Control.Applicative ((<$>))
+import Control.Applicative ((*>), pure)
 import Control.Concurrent (threadDelay)
-import Control.Exception (Exception, IOException, ioError)
-import Control.Monad (Monad((>>), (>>=), return), when)
+import Control.Exception
+    ( Exception
+    , IOException
+    , ioError
+    , mask
+    , onException
+    , catch
+    , throw
+    )
+import Control.Monad ((>>=), when)
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Bits ((.|.))
 import Data.Data (Data)
-import Data.Eq (Eq((/=)))
-import Data.Ord (Ord((>)))
+import Data.Eq (Eq, (/=))
+import Data.Ord ((>))
 import Data.Function ((.), ($))
+import Data.Functor ((<$>))
 import Data.Maybe (Maybe(Just, Nothing))
 import Data.Typeable (Typeable)
 import Data.Word (Word8, Word64)
@@ -62,18 +72,9 @@ import System.Posix.Internals
 import Text.Read (Read)
 import Text.Show (Show(showsPrec), show, shows, showString)
 
-import Control.Monad.IO.Class (MonadIO(liftIO))
-import System.Directory (removeFile)
-
 import Control.Monad.Catch (MonadMask)
-import Control.Monad.TaggedException
-    ( Throws
-    , throw
-    , mapException
-    , onException'
-    )
-import Control.Monad.TaggedException.Hidden (HiddenException)
 import Data.Default.Class (Default(def))
+import System.Directory (removeFile)
 
 
 -- | Defines strategy for handling situations when lock-file is already
@@ -100,7 +101,7 @@ instance Default RetryStrategy where
 --     :: ('MonadMask' m, 'MonadIO' m)
 --     => 'FilePath'
 --     -> m a
---     -> 'Throws' 'LockingException' m a
+--     -> m a
 -- lockedDo = 'System.IO.LockFile.withLockFile' lockParams lockFile
 --   where
 --     lockParams = 'def'
@@ -145,21 +146,15 @@ instance Show LockingException where
     showsPrec _ e = case e of
         UnableToAcquireLockFile fp -> shows' "Unable to acquire lock file" fp
         CaughtIOException ioe      -> shows' "Caught IO exception" ioe
-      where shows' str x = showString str . showString ": " . shows x
+      where
+        shows' str x = showString str . showString ": " . shows x
 
 instance Exception LockingException
-instance HiddenException LockingException
-
--- | Map 'IOException' to 'LockingException'.
-wrapIOException
-    :: (MonadMask m)
-    => Throws IOException m a
-    -> Throws LockingException m a
-wrapIOException = mapException CaughtIOException
 
 -- | Lift @IO@ and map any raised 'IOException' to 'LockingException'.
-io :: (MonadMask m, MonadIO m) => IO a -> Throws LockingException m a
-io = wrapIOException . liftIO
+io :: (MonadMask m, MonadIO m) => IO a -> m a
+io m = liftIO $ mask $ \restore ->
+    restore m `catch` (throw . CaughtIOException)
 
 -- | Open lock file write PID of a current process in to it and return its
 -- handle.
@@ -170,7 +165,7 @@ lock
     :: (MonadMask m, MonadIO m)
     => LockingParameters
     -> FilePath
-    -> Throws LockingException m Handle
+    -> m Handle
 lock params = lock' $ case retryToAcquireLock params of
     NumberOfTimes 0 -> params{retryToAcquireLock = No}
     _               -> params
@@ -178,13 +173,13 @@ lock params = lock' $ case retryToAcquireLock params of
     openLockFile lockFileName = io $ do
         fd <- withFilePath lockFileName $ \fp -> c_open fp openFlags 0o644
         if fd > 0
-            then Just <$> fdToHandle fd `onException'` c_close fd
+            then Just <$> fdToHandle fd `onException` c_close fd
             else do
                 errno <- getErrno
                 when (errno /= eEXIST) . ioError
                     . errnoToIOError "lock" errno Nothing $ Just lockFileName
                 -- Failed to open lock file because it already exists
-                return Nothing
+                pure Nothing
       where
         openFlags = o_NONBLOCK .|. o_NOCTTY .|. o_RDWR .|. o_CREAT .|. o_EXCL
             .|. o_BINARY
@@ -197,7 +192,7 @@ lock params = lock' $ case retryToAcquireLock params of
                 Just h  -> io $ do
                     c_getpid >>= hPutStr h . show
                     hFlush h
-                    return h
+                    pure h
                 Nothing ->
                     case retryToAcquireLock params' of
                         No -> failedToAcquireLockFile
@@ -218,6 +213,6 @@ unlock
     :: (MonadMask m, MonadIO m)
     => FilePath
     -> Handle
-    -> Throws LockingException m ()
+    -> m ()
 unlock lockFileName lockFileHandle =
-    io $ hClose lockFileHandle >> removeFile lockFileName
+    io $ hClose lockFileHandle *> removeFile lockFileName

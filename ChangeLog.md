@@ -1,6 +1,12 @@
 # ChangeLog / ReleaseNotes
 
 
+## Version 0.7.0.0 (unreleased)
+
+* Dropping dependency on [tagged-exception-core][] package. (**breaking
+  change**)
+
+
 ## Version 0.6.0.0 (unreleased)
 
 * Explicitly unpacking strict fields in data types. (**change**)
