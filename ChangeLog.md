@@ -1,7 +1,7 @@
 # ChangeLog / ReleaseNotes
 
 
-## Version 0.7.0.0 (unreleased)
+## Version 0.7.0.0
 
 * Dropping dependency on [tagged-exception-core][] package. (**breaking
   change**)
