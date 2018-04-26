@@ -1,6 +1,11 @@
 # ChangeLog / ReleaseNotes
 
 
+## Version 0.7.1.0 (unreleased)
+
+* Introducing flag `examples` for building example executables.
+
+
 ## Version 0.7.0.0
 
 * Dropping dependency on [tagged-exception-core][] package. (**breaking

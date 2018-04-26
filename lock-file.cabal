@@ -1,5 +1,5 @@
 name:                   lock-file
-version:                0.7.0.0
+version:                0.7.1.0
 synopsis:               Provide exclusive access to a resource using lock file.
 description:
   Provide exclusive access to a resource using lock file, which are files whose
@@ -21,10 +21,14 @@ cabal-version:          >=1.10
 extra-source-files:
     ChangeLog.md
   , README.md
-  , example/*.hs
 
 flag pedantic
   description:          Pass additional warning flags to GHC.
+  default:              False
+  manual:               True
+
+flag examples
+  description:          Build example(s).
   default:              False
   manual:               True
 
@@ -70,16 +74,12 @@ library
         -fwarn-missing-import-lists
 
 test-suite lock-file-unit-tests
-  hs-source-dirs:       src, test
+  hs-source-dirs:       test
   type:                 exitcode-stdio-1.0
   main-is:              unit-tests-main.hs
 
   other-modules:
-    -- {{{ Modules from lock-file library -------------------------------------
-      System.IO.LockFile
-    , System.IO.LockFile.Internal
-    -- }}} Modules from lock-file library -------------------------------------
-    , TestCase
+      TestCase
     , TestCase.System.IO.LockFile
 
   build-depends:
@@ -107,6 +107,8 @@ test-suite lock-file-unit-tests
  -- , test-framework-skip ==1.*
       -- ^ Currently there is only version 1.0.
     -- }}} Test-suite dependencies --------------------------------------------
+
+    , lock-file
 
   if impl(ghc <8)
     build-depends:
@@ -136,11 +138,67 @@ test-suite lock-file-unit-tests
         -fwarn-implicit-prelude
         -fwarn-missing-import-lists
 
+executable lock-file-example
+  if flag(examples)
+    buildable:          True
+  else
+    buildable:          False
+
+  hs-source-dirs:       example
+  main-is:              example.hs
+
+  build-depends:
+      base >=4.5 && <5
+    , data-default-class >=0.0 && <0.2
+
+    , lock-file
+
+  ghc-options:          -Wall
+  if flag(pedantic)
+    ghc-options:
+      -Werror
+    if impl(ghc >=8)
+      ghc-options:
+        -Wmissing-import-lists
+    else
+      ghc-options:
+        -fwarn-tabs
+        -fwarn-missing-import-lists
+
+executable lock-file-example-pid-file
+  if flag(examples)
+    buildable:          True
+  else
+    buildable:          False
+
+
+  hs-source-dirs:       example
+  main-is:              example-pid-file.hs
+
+  build-depends:
+      base >=4.5 && <5
+    , data-default-class >=0.0 && <0.2
+    , unix ==2.*
+
+    , lock-file
+
+  ghc-options:          -Wall
+  if flag(pedantic)
+    ghc-options:
+      -Werror
+    if impl(ghc >=8)
+      ghc-options:
+        -Wmissing-import-lists
+    else
+      ghc-options:
+        -fwarn-tabs
+        -fwarn-missing-import-lists
+
 source-repository head
   type:                 git
   location:             git://github.com/trskop/lock-file.git
 
-source-repository this
-  type:                 git
-  location:             git://github.com/trskop/lock-file.git
-  tag:                  0.7.0.0
+--source-repository this
+--  type:                 git
+--  location:             git://github.com/trskop/lock-file.git
+--  tag:                  0.7.1.0

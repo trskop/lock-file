@@ -160,9 +160,13 @@ main = withPidFile $ do
 Building options
 ----------------
 
-* `-fpedantic` (disabled by default)
+* `pedantic` (disabled by default)
 
-  Pass additional warning flags to GHC.
+    Pass additional warning flags to GHC.
+
+* `examples` (disabled by default)
+
+    Build example(s).
 
 
 
